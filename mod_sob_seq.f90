@@ -9,15 +9,45 @@ module mod_sob_seq
 
   !> Type containing the state of a sobol sequence
   type sobol_state
-    integer :: v(N_M)   !< Direction numbers
-    integer :: i        !< Current number
-    integer :: x        !< Current value
-    integer :: stride=0 !< Skip 2^this many values when generating
+    private
+      integer :: v(N_M)   !< Direction numbers
+      integer :: i = 1    !< Current number
+      integer :: x = 0    !< Current value
+      integer :: stride=0 !< Skip 2^this many values when generating
   contains
-    procedure :: skip_ahead !< Skip ahead to a specific position and return this value
-    procedure :: next       !< Generate the next value in the sequence
+      procedure, public :: initialize !< Initialize direction numbers
+      procedure, public :: skip_ahead !< Skip ahead to a specific position and return this value
+      procedure, public :: next       !< Generate the next value in the sequence
   end type sobol_state
 contains
+
+
+!> Initialize the direction numbers using a primitive polynomial
+subroutine initialize(state, s, a, m_in)
+  implicit none
+  class (sobol_state), intent(inout) :: state
+  integer, intent(in) :: s !< Number of direction numbers
+  integer, intent(in) :: a !< Coefficients of primitive polynomial
+  integer, intent(in), dimension(s) :: m_in !< First direction numbers
+
+  integer, dimension(N_M) :: m
+  integer :: k, i, tmp
+
+  m(1:s) = m_in
+
+  do k=s+1, N_M
+    tmp=ieor(2**s * m(k-s), m(k-s))
+    do i = k-s+1, k-1
+      tmp = ieor(m(i) * 2**(k-i) * ai(a, k-i), &
+                 tmp)
+    end do
+    m(k) = tmp
+  end do
+
+  do k=1, N_M
+    state%v(k) = m(k)/2**k
+  end do
+end subroutine initialize
 
 
 !> Generate a value at a specific position i
@@ -60,4 +90,18 @@ function next(state)
 
   next = real(state%x) * 2.0**(-32)
 end function next
+
+
+!> Returns the value of the bit at position i (1-based index)
+function ai(a,i)
+implicit none
+integer, intent(in) :: a, i
+integer :: ai
+
+if (btest(a,i-1)) then
+  ai = 1
+else
+  ai = 0
+end if
+end function ai
 end module mod_sob_seq
