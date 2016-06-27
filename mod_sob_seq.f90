@@ -10,7 +10,7 @@ module mod_sob_seq
   !> Type containing the state of a sobol sequence
   type sobol_state
     private
-      integer :: v(N_M)   !< Direction numbers
+      real    :: v(N_M)   !< Direction numbers
       integer :: i = 1    !< Current number
       integer :: x = 0    !< Current value
       integer :: stride=0 !< Skip 2^this many values when generating
@@ -26,7 +26,7 @@ contains
 subroutine initialize(state, s, a, m_in)
   implicit none
   class (sobol_state), intent(inout) :: state
-  integer, intent(in) :: s !< Number of direction numbers
+  integer, intent(in) :: s !< Number of direction numbers / Mathematically polynomial basis of degree s
   integer, intent(in) :: a !< Coefficients of primitive polynomial
   integer, intent(in), dimension(s) :: m_in !< First direction numbers
 
@@ -45,7 +45,7 @@ subroutine initialize(state, s, a, m_in)
   end do
 
   do k=1, N_M
-    state%v(k) = m(k)/2**k
+    state%v(k) = real(m(k))/2**k
   end do
 end subroutine initialize
 
@@ -104,4 +104,28 @@ else
   ai = 0
 end if
 end function ai
+
+function gray(i)
+  implicit none
+  integer, intent(in) :: i
+  integer gray
+
+  gray = ieor(i,i/2)
+
+end function gray
+
+function ci(i,nm)
+  implicit none
+  integer, intent(in) :: i, nm
+  integer :: ci
+
+  do k=1, nm
+    if (.NOT.btest(i,k-1)) then
+      ci = k
+      exit 
+    end if
+  end do 
+
+end function ci
+
 end module mod_sob_seq
