@@ -10,9 +10,9 @@ module mod_sob_seq
   !> Type containing the state of a sobol sequence
   type sobol_state
     private
-      real    :: v(N_M)   !< Direction numbers
+      integer :: m(N_M)   !< Direction numbers
       integer :: i = 1    !< Current number
-      integer :: x = 0    !< Current value
+      real    :: x = 0    !< Current value
       integer :: stride=0 !< Skip 2^this many values when generating
   contains
       procedure, public :: initialize !< Initialize direction numbers
@@ -26,7 +26,7 @@ contains
 subroutine initialize(state, s, a, m_in)
   implicit none
   class (sobol_state), intent(inout) :: state
-  integer, intent(in) :: s !< Number of direction numbers / Mathematically polynomial basis of degree s
+  integer, intent(in) :: s !< Number of direction numbers / Mathematical polynomial basis of degree s
   integer, intent(in) :: a !< Coefficients of primitive polynomial
   integer, intent(in), dimension(s) :: m_in !< First direction numbers
 
@@ -45,7 +45,7 @@ subroutine initialize(state, s, a, m_in)
   end do
 
   do k=1, N_M
-    state%v(k) = real(m(k))/2**k
+    state%m(k) = m(k)
   end do
 end subroutine initialize
 
@@ -57,15 +57,19 @@ function skip_ahead(state, i) result(output)
   integer, intent(in) :: i
   real    :: output
   integer :: g ! Gray code representation of i
-  integer :: j
-
+  integer :: j, tmp
+  
   g = ieor(i,i/2)
   state%x = 0
   state%i = i
-  do j=1,N_M
-    if (btest(g,j-1)) state%x = ieor(state%x,state%v(j))
-  enddo
-  output = real(state%x) * 2.0**(-32)
+  
+  tmp = ai(g,1) * state%m(1)
+    DO k=2, N_M
+      tmp2 = ieor(tmp*2,ai(g,k) * state%m(k)) !How do we use an XOR with REAL input? LIKE THIS!
+    END DO
+  output = real(tmp) / 2**N_M
+  state%x = real(tmp) / 2**N_M
+  
 end function skip_ahead
 
 
@@ -80,7 +84,7 @@ function next(state)
   ! TODO: check if the strided case reduces to the nonstrided case and remove this,
   ! or check the speed difference, and provide two different functions
   if (state%stride .eq. 0) then
-    state%x = ieor(state%x, state%v(i4_bit_lo0(state%i)))
+    state%x=real(ieor(int(state%x * 2**N_M),state%m(i4_bit_lo0(state%i)) * 2**(N_M-i4_bit_lo0(state%i))))/2**N_M
   else
     state%x = ieor(state%x, ieor(state%v(state%stride), state%v(&
         i4_bit_lo0(ior(state%i, 2**state%stride - 1)))))
@@ -88,7 +92,7 @@ function next(state)
 
   state%i = state%i + 2**state%stride
 
-  next = real(state%x) * 2.0**(-32)
+  next = state%x
 end function next
 
 
@@ -104,28 +108,5 @@ else
   ai = 0
 end if
 end function ai
-
-function gray(i)
-  implicit none
-  integer, intent(in) :: i
-  integer gray
-
-  gray = ieor(i,i/2)
-
-end function gray
-
-function ci(i,nm)
-  implicit none
-  integer, intent(in) :: i, nm
-  integer :: ci
-
-  do k=1, nm
-    if (.NOT.btest(i,k-1)) then
-      ci = k
-      exit 
-    end if
-  end do 
-
-end function ci
 
 end module mod_sob_seq
