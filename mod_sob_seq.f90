@@ -5,7 +5,7 @@
 module mod_sob_seq
   implicit none
 
-  integer, parameter :: N_M = 32 ! Generate at most 2^32 points
+  integer, parameter :: N_M = 31 ! Generate at most 2^32 points
 
   !> Type containing the state of a sobol sequence
   type sobol_state
@@ -67,7 +67,7 @@ function skip_ahead(state, i) result(output)
   do j=2, N_M
     tmp = ieor(tmp*2,ai(g,j) * state%m(j))
   end do
-  output = real(tmp) / 2**N_M
+  output = real(tmp) * 2.d0**(-N_M)
   state%x = tmp
   
 end function skip_ahead
@@ -92,7 +92,7 @@ function next(state)
 
   state%i = state%i + 2**state%stride
 
-  next = state%x / 2**N_M
+  next = real(state%x) * 2.d0**(-N_M)
 end function next
 
 
