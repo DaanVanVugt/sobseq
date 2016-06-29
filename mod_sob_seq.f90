@@ -23,12 +23,13 @@ contains
 
 
 !> Initialize the direction numbers using a primitive polynomial
-subroutine initialize(state, s, a, m_in)
+subroutine initialize(state, s, a, m_in, stride)
   implicit none
   class (sobol_state), intent(inout) :: state
   integer, intent(in) :: s !< Number of direction numbers / Mathematical polynomial basis of degree s
   integer, intent(in) :: a !< Coefficients of primitive polynomial
   integer, intent(in), dimension(s) :: m_in !< First direction numbers
+  integer, intent(in), optional :: stride
 
   integer, dimension(N_M) :: m
   integer :: k, i, tmp
@@ -45,8 +46,13 @@ subroutine initialize(state, s, a, m_in)
   end do
 
   do k=1, N_M
-    state%m(k) = m(k)
+    state%m(k) = (2**(N_M-k))*m(k)
   end do
+
+  state%x = 0
+  state%i = 0
+  state%stride = 0
+  if (present(stride)) state%stride = stride
 end subroutine initialize
 
 
@@ -65,7 +71,7 @@ function skip_ahead(state, i) result(output)
   
   tmp = ai(g,1) * state%m(1)
   do j=2, N_M
-    tmp = ieor(tmp*2,ai(g,j) * state%m(j))
+    tmp = ieor(tmp,ai(g,j) * state%m(j))
   end do
   output = real(tmp) * 2.d0**(-N_M)
   state%x = tmp
@@ -84,10 +90,10 @@ function next(state)
   ! TODO: check if the strided case reduces to the nonstrided case and remove this,
   ! or check the speed difference, and provide two different functions
   if (state%stride .eq. 0) then
-    state%x=ieor(state%x,state%m(i4_bit_lo0(state%i)) * 2**(N_M-i4_bit_lo0(state%i)))
+    state%x = ieor(state%x, state%m(i4_bit_lo0(state%i)))
   else
-    state%x = ieor(state%x, ieor(state%m(state%stride) * 2**(N_M-state%stride), state%m(&
-        i4_bit_lo0(ior(state%i, 2**state%stride - 1))) * 2**(N_M-i4_bit_lo0(ior(state%i, 2**state%stride - 1)))))
+    state%x = ieor(state%x, ieor(state%m(state%stride), state%m(&
+        i4_bit_lo0(ior(state%i, 2**state%stride - 1)))))
   endif
 
   state%i = state%i + 2**state%stride
