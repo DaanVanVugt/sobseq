@@ -86,8 +86,9 @@ function next(state)
   if (state%stride .eq. 0) then
     state%x=real(ieor(int(state%x * 2**N_M),state%m(i4_bit_lo0(state%i)) * 2**(N_M-i4_bit_lo0(state%i))))/2**N_M
   else
-    state%x = ieor(state%x, ieor(state%v(state%stride), state%v(&
-        i4_bit_lo0(ior(state%i, 2**state%stride - 1)))))
+    state%x = ieor(int(state%x * 2**N_M), ieor(state%m(state%stride) * 2**(N_M-state%stride), state%m(&
+        i4_bit_lo0(ior(state%i, 2**state%stride - 1))) * 2**(N_M-i4_bit_lo0(ior(state%i, 2**state%stride - 1)))))&
+        /2**N_M
   endif
 
   state%i = state%i + 2**state%stride
