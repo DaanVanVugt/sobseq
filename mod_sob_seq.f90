@@ -12,7 +12,7 @@ module mod_sob_seq
     private
       integer :: m(N_M)   !< Direction numbers
       integer :: i = 1    !< Current number
-      real    :: x = 0    !< Current value
+      integer :: x = 0    !< Current value
       integer :: stride=0 !< Skip 2^this many values when generating
   contains
       procedure, public :: initialize !< Initialize direction numbers
@@ -64,11 +64,11 @@ function skip_ahead(state, i) result(output)
   state%i = i
   
   tmp = ai(g,1) * state%m(1)
-    DO k=2, N_M
-      tmp2 = ieor(tmp*2,ai(g,k) * state%m(k)) !How do we use an XOR with REAL input? LIKE THIS!
-    END DO
+  do j=2, N_M
+    tmp = ieor(tmp*2,ai(g,j) * state%m(j))
+  end do
   output = real(tmp) / 2**N_M
-  state%x = real(tmp) / 2**N_M
+  state%x = tmp
   
 end function skip_ahead
 
@@ -84,7 +84,7 @@ function next(state)
   ! TODO: check if the strided case reduces to the nonstrided case and remove this,
   ! or check the speed difference, and provide two different functions
   if (state%stride .eq. 0) then
-    state%x=real(ieor(int(state%x * 2**N_M),state%m(i4_bit_lo0(state%i)) * 2**(N_M-i4_bit_lo0(state%i))))/2**N_M
+    state%x=ieor(state%x,state%m(i4_bit_lo0(state%i)) * 2**(N_M-i4_bit_lo0(state%i)))
   else
     state%x = ieor(int(state%x * 2**N_M), ieor(state%m(state%stride) * 2**(N_M-state%stride), state%m(&
         i4_bit_lo0(ior(state%i, 2**state%stride - 1))) * 2**(N_M-i4_bit_lo0(ior(state%i, 2**state%stride - 1)))))&
