@@ -1,5 +1,5 @@
-program test_sob_seq
-  use mod_sob_seq
+program test_sobseq
+  use mod_sobseq
   type(sobol_state) :: rng, rng2
   integer :: i
   integer, parameter :: s=1, a=0, m(1) = (/1/)
@@ -55,4 +55,4 @@ program test_sob_seq
 
     
     
-end program test_sob_seq
+end program test_sobseq

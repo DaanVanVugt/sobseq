@@ -1,7 +1,4 @@
-test_sob_seq: test_sob_seq.f90 mod_sob_seq.o mod_bit_hilo.o
-	gfortran $^ -o $@
-
-test_mod_bit_hilo: test_mod_bit_hilo.f90 mod_bit_hilo.f90
+test_sobseq: test_sobseq.f90 mod_sobseq.o
 	gfortran $^ -o $@
 
 %.o: %.f90
