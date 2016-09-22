@@ -38,3 +38,12 @@ end do
 The module also contains functions for generating numbers in a strided manner, which is useful for parallel operation.
 To use this, set n_streams to the 2-logarithm of the number of streams you want (if n_streams is not a power of 2 you might get distribution problems)
 and use the rng%next_strided() generator.
+
+
+## Authors
+
+* Koen Beljaars <k.p.beljaars@tue.nl>
+* Daan van Vugt <daanvanvugt@gmail.com>
+
+## License
+This work is released under the MIT license. A copy can be found in the file LICENSE in the repository.
