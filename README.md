@@ -7,29 +7,44 @@ This repository contains a module, `mod_sobseq.f90`, which can be used to genera
 ## How to use
 To generate sobol sequences in many dimensions, direction numbers are needed.
 A good set of these was made by [Joe and Kuo](http://web.maths.unsw.edu.au/~fkuo/sobol/).
-The direction numbers for the dimensions 2 to 9 are reproduced here, and more can be found at the link above.
+The direction numbers for the first eight are reproduced here, and more can be found at the link above.
 ```fortran
-integer, parameter, dimension(2:9)   :: s = (/1,2,3,3,4,4,5,5/)
-integer, parameter, dimension(2:9)   :: a = (/0,1,1,2,1,4,2,4/)
-integer, parameter, dimension(5,2:9) :: m = reshape((/1,0,0,0,0, &
+integer, parameter, dimension(1:12)   :: s = (/1,2,3,3,4,4,5,5,5,5,5,5/)
+integer, parameter, dimension(1:12)   :: a = (/0,1,1,2,1,4,2,4,7,11,13,14/)
+integer, parameter, dimension(5,1:12) :: m = reshape((/1,0,0,0,0, &
 					1,3,0,0,0, &
 					1,3,1,0,0, &
 					1,1,1,0,0, &
 					1,1,3,3,0, &
 					1,3,5,13,0,&
 					1,1,5,5,17,&
-					1,1,5,5,5/), (/5,8/))
+					1,1,5,5,5,&
+					1,1,7,11,19,&
+					1,1,5,1,1,&
+					1,1,1,3,11,&
+					1,3,5,5,31/), (/5,12/))
 ```
 
-The following code snippet contains a small example, in 1 dimension.
-Use 1 QRNG per dimension.
+The following code snippet contains a small example.
 ```fortran
+integer, parameter :: n_dim=9
+integer, parameter :: n_samples=200
+type(sobol_state), dimension(n_dim) :: rng
+integer :: i, j
+real :: u(n_dim)
+
 ! Initialization
-call rng%initialize(s(n_dim), a(n_dim), m(:,n_dim))
+do i=1,n_dim
+  call rng%initialize(s(i), a(i), m(:,i))
+end do
 
 ! Generation
-do i=1,n_vars
-  out(i) = rng%next()
+do j=1,n_samples
+  do i=1,n_dim
+    u(i) = rng(i)%next()
+  end do
+
+  ! do something with u
 end do
 ```
 
