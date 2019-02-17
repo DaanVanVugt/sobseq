@@ -7,11 +7,11 @@ This repository contains a module, `mod_sobseq.f90`, which can be used to genera
 ## How to use
 To generate sobol sequences in many dimensions, direction numbers are needed.
 A good set of these was made by [Joe and Kuo](http://web.maths.unsw.edu.au/~fkuo/sobol/).
-The direction numbers for the first 8 dimensions are reproduced here
+The direction numbers for the dimensions 2 to 9 are reproduced here, and more can be found at the link above.
 ```fortran
-integer, parameter, dimension(1:8)   :: s = (/1,2,3,3,4,4,5,5/)
-integer, parameter, dimension(1:8)   :: a = (/0,1,1,2,1,4,2,4/)
-integer, parameter, dimension(5,1:8) :: m = reshape((/1,0,0,0,0, &
+integer, parameter, dimension(2:9)   :: s = (/1,2,3,3,4,4,5,5/)
+integer, parameter, dimension(2:9)   :: a = (/0,1,1,2,1,4,2,4/)
+integer, parameter, dimension(5,2:9) :: m = reshape((/1,0,0,0,0, &
 					1,3,0,0,0, &
 					1,3,1,0,0, &
 					1,1,1,0,0, &
@@ -25,7 +25,7 @@ The following code snippet contains a small example, in 1 dimension.
 Use 1 QRNG per dimension.
 ```fortran
 ! Initialization
-call rng%initialize(s(i), a(i), m(:,i))
+call rng%initialize(s(n_dim), a(n_dim), m(:,n_dim))
 
 ! Generation
 do i=1,n_vars
@@ -42,8 +42,8 @@ and use the rng%next_strided() generator.
 
 ## Authors
 
-* Koen Beljaars <k.p.beljaars@tue.nl>
 * Daan van Vugt <daanvanvugt@gmail.com>
+* Koen Beljaars <k.p.beljaars@tue.nl>
 
 ## License
 This work is released under the MIT license. A copy can be found in the file LICENSE in the repository.
